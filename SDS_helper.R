@@ -1,5 +1,6 @@
 require(broom)
 
+### Slignshot ##
 
 plotCurveHeatmaps <- function(object=NULL,curve=NULL,filename='heatmap.png',n=25){
     c = sym(curve)
