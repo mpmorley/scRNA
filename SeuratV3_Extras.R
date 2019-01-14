@@ -1,4 +1,5 @@
 require(broom)
+library(slingshot)
 
 processExper <- function(dir,name,org='mouse',files,ccscale=F){
   try(if(length(files)==0) stop("No files"))
@@ -63,7 +64,6 @@ RunDiffusion <- function(
   reduction = 'pca',
   features = NULL,
   assay = 'RNA',
-  nneighbors = 30L,
   max.dim = 2L,
   q.use = 0.01,
   reduction.name = "dm",
@@ -78,17 +78,16 @@ RunDiffusion <- function(
   }
   
   data.dist <- dist(data.use)
-  data.diffusion <- data.frame(destiny::DiffusionMap(data = as.matrix(data.dist), 
-                                                     n_eigs = max.dim)@eigenvectors)
+  data.diffusion <- data.frame(destiny::DiffusionMap(data = as.matrix(data.dist),n_eigs = max.dim)@eigenvectors)
   
   colnames(x = data.diffusion) <- paste0(reduction.key, 1:ncol(x = data.diffusion))
   rownames(x = data.diffusion) <-  rownames(data.use)
-  for (i in 1:max.dim) {
-    x <- data.diffusion[, i]
-    x <- MinMax(data = x, min = quantile(x = x, probs = q.use), 
-                quantile(x = x, probs = 1 - q.use))
-    data.diffusion[, i] <- x
-  }
+ # for (i in 1:max.dim) {
+#    x <- data.diffusion[, i]
+ #   x <- MinMax(data = x, min = quantile(x = x, probs = q.use), 
+  #              quantile(x = x, probs = 1 - q.use))
+  #  data.diffusion[, i] <- x
+  #}
   
   assay <- DefaultAssay(object = object[[reduction]])
   
@@ -125,7 +124,7 @@ plotCurveHeatmaps <- function(object=NULL,curve=NULL,filename='heatmap.png',n=25
 
 plotCurveDGEgenes <- function(object=NULL,curve=NULL,n=25,reduction.use='dm'){
   genes = object@misc$sds$dge[[curve]] %>% arrange(p.value) %>% head(n) %>% pull(gene)
-  plot_grid(  plotlist = FeaturePlot(scrna.sub,genes,reduction.use = 'dm',cols.use = c('grey','purple'),do.return = T))
+  plot_grid(  plotlist = FeaturePlot(scrna.sub,genes,reduction.use = reduction.use,cols.use = c('grey','purple'),do.return = T))
   
 }
 
@@ -159,7 +158,7 @@ runSDSDGE <- function(object){
 }
 
 
-plotPseudoTime = function(object,groupby){
+plotPseudoTime = function(object,groupby,reduction.use='DM'){
 
   curved <- bind_rows(lapply(names(object@misc$sds$data@curves), function(x){c <- slingCurves(object@misc$sds$data)[[x]]
                                                 d <- as.data.frame(c$s[c$ord,seq_len(2)])
@@ -168,7 +167,10 @@ plotPseudoTime = function(object,groupby){
                                                 })
                                                ) 
 
-  p=FetchData(object,append(c('DM_1','DM_2'),groupby)) %>%
+  
+  data <- Embeddings(object = object[[reduction]])
+  
+  p=FetchData(object,groupby) %>% 
     ggplot(.,aes(x=DM_1,y=DM_2))+geom_point(aes(color=!!sym(groupby))) + theme(legend.position="top") + guides(col = guide_legend(nrow = 2))+
     geom_path(aes(DM_1, DM_2,linetype=curve),curved,size=1)
 p
