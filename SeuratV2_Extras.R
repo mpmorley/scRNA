@@ -17,7 +17,7 @@ plotCurveHeatmaps <- function(object=NULL,curve=NULL,filename='heatmap.png',n=25
 
 plotCurveDGEgenes <- function(object=NULL,curve=NULL,n=25,reduction.use='dm'){
   genes = object@misc$sds$dge[[curve]] %>% arrange(p.value) %>% head(n) %>% pull(gene)
-  plot_grid(  plotlist = FeaturePlot(scrna.sub,genes,reduction.use = 'dm',cols.use = c('grey','purple'),do.return = T))
+  plot_grid(  plotlist = FeaturePlot(scrna.sub,genes,reduction.use = reduction.use,cols.use = c('grey','purple'),do.return = T))
   
 }
 
