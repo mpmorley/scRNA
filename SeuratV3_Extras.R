@@ -1,5 +1,5 @@
 require(broom)
-library(slingshot)
+#library(slingshot)
 
 processExper <- function(dir,name,org='mouse',files,ccscale=F){
   try(if(length(files)==0) stop("No files"))
