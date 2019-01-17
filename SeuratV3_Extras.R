@@ -64,7 +64,7 @@ RunDiffusion <- function(
   reduction = 'pca',
   features = NULL,
   assay = 'RNA',
-  max.dim = 2L,
+  max.dim = 3L,
   q.use = 0.01,
   reduction.name = "dm",
   reduction.key = "DM_",
@@ -77,7 +77,7 @@ RunDiffusion <- function(
     data.use <- t(x = GetAssayData(object = object, slot = 'data', assay = assay)[features, ])
   }
   
-  data.dist <- dist(data.use)
+  data.dist <- parallelDist::dist(data.use)
   data.diffusion <- data.frame(destiny::DiffusionMap(data = as.matrix(data.dist),n_eigs = max.dim)@eigenvectors)
   
   colnames(x = data.diffusion) <- paste0(reduction.key, 1:ncol(x = data.diffusion))
