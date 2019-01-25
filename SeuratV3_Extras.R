@@ -58,6 +58,34 @@ processExper <- function(dir,name,org='mouse',files,ccscale=F){
 }
 
 
+makeSubset <- function(object,groups){
+  scrna.sub <- SubsetData(object = object, ident.use = groups)
+  scrna.sub <- FindVariableFeatures(object = scrna.sub,assay='RNA')
+  
+  
+  
+  scrna.sub <-RunPCA(scrna.sub,pcs.compute = 50)
+  
+  scrna.sub <- JackStraw(object = scrna.sub, num.replicate = 100,dims = pcs)
+  scrna.sub <- ScoreJackStraw(object = scrna.sub, dims = 1:pcs)
+  #JackStrawPlot(object = scrna.sub, dims = 1:pcs)
+  
+  dim <- scrna.sub@reductions$pca@jackstraw$overall.p.values %>% as.data.frame(.) %>% filter(Score<0.001) %>% summarise(max=max(PC)) %>% pull(max)
+  
+  scrna.sub <- FindNeighbors(object = scrna.sub,dims = 1:dim)
+  scrna.sub <- FindClusters(object = scrna.sub,resolution = .4)
+  
+  scrna.sub <- RunUMAP(object = scrna.sub, min.dist=.3,n.neighbors = 50,dims = 1:dim)
+  scrna.sub <- RunDiffusion(object = scrna.sub,dims=1:dim)
+  
+  save(file=paste0(outdir,'/',projectname,'_',m,'.RData'))
+  rm(scrna.sub)
+}
+
+
+
+
+
 RunDiffusion <- function(
   object,
   dims = 1:5,
@@ -78,7 +106,7 @@ RunDiffusion <- function(
   }
   
   data.dist <- parallelDist::parDist(data.use)
-  data.diffusion <- data.frame(destiny::DiffusionMap(data = as.matrix(data.dist),n_eigs = max.dim)@eigenvectors)
+  data.diffusion <- data.frame(destiny::DiffusionMap(data = as.matrix(data.dist)+1,n_eigs = max.dim)@eigenvectors)
   
   colnames(x = data.diffusion) <- paste0(reduction.key, 1:ncol(x = data.diffusion))
   rownames(x = data.diffusion) <-  rownames(data.use)
@@ -158,7 +186,7 @@ runSDSDGE <- function(object){
 }
 
 
-plotPseudoTime = function(object,groupby,reduction.use='DM'){
+plotPseudoTime = function(object,groupby,reduction='dm'){
 
   curved <- bind_rows(lapply(names(object@misc$sds$data@curves), function(x){c <- slingCurves(object@misc$sds$data)[[x]]
                                                 d <- as.data.frame(c$s[c$ord,seq_len(2)])
@@ -170,7 +198,7 @@ plotPseudoTime = function(object,groupby,reduction.use='DM'){
   
   data <- Embeddings(object = object[[reduction]])
   
-  p=FetchData(object,groupby) %>% 
+  p=FetchData(object,groupby) %>% cbind(.,data) %>%
     ggplot(.,aes(x=DM_1,y=DM_2))+geom_point(aes(color=!!sym(groupby))) + theme(legend.position="top") + guides(col = guide_legend(nrow = 2))+
     geom_path(aes(DM_1, DM_2,linetype=curve),curved,size=1)
 p
