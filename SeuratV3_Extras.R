@@ -3,19 +3,40 @@ require(broom)
 
 processExper <- function(dir,name,org='mouse',files,ccscale=F){
   try(if(length(files)==0) stop("No files"))
+ 
   
-  # Load the dataset
-  inputdata <- Read10X(data.dir =files[1])
-  colnames( inputdata) <- paste0(colnames(inputdata), '_',name)
+  if(length(files)==1){
+    # Load the dataset
+    inputdata <- Read10X(data.dir =files[1])
+    colnames(inputdata) <- paste0(colnames(inputdata), '-',name)
+    # Initialize the Seurat object with the raw (non-normalized data).  
+    scrna <- CreateSeuratObject(counts= inputdata, min.cells = 10, min.features = 200,project = name)
+  }else{
+    
+    #Initialize the first object with the raw (non-normalized data) and add rest of the data 
+    inputdata <- Read10X(data.dir =files[1])
+    colnames(inputdata) <- paste0(colnames(inputdata), '-',name, '-rep1')
+    object <- CreateSeuratObject(counts= inputdata, min.cells = 10, min.features = 200, project = name)
+    #cat('Rep1', length(object@cell.names), "\n")
+    for(i in 2:length(files)){
+      tmp.data <- Read10X(data.dir =files[i])
+      colnames(tmp.data) <- paste0(colnames(tmp.data), '-',name, '-rep',i)
+      
+      tmp.object <- CreateSeuratObject(counts= tmp.data, min.cells = 10, min.features = 200, project = name)
+     # cat('Rep', i, ": ", length(tmp.object@cell.names), "\n", sep="")
+      object <- merge(object, tmp.object, do.normalize = FALSE, min.cells = 0, min.features = 0)
+    }
+    #cat("merged: ", length(scrna@cell.names), "\n", sep="")
+  }
   
-  # Initialize the Seurat object with the raw (non-normalized data).  
-  object <- CreateSeuratObject(counts = inputdata, min.cells = 10, min.features = 200,project = name)
   
+  
+
   
   if(org=='mouse'){
     mito.features <- grep(pattern = "^mt-", x = rownames(x = object), value = TRUE)
   }else{
-    mito.features <- grep(pattern = "^Mt-", x = rownames(x = object), value = TRUE)
+    mito.features <- grep(pattern = "^MT-", x = rownames(x = object), value = TRUE)
   }
   
   
