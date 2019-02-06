@@ -35,8 +35,6 @@ processExper <- function(dir,name,org='mouse',files,ccscale=F){
     #cat("merged: ", length(scrna@cell.names), "\n", sep="")
   }
   
-  
-  
 
   
   if(org=='mouse'){
@@ -68,7 +66,7 @@ processExper <- function(dir,name,org='mouse',files,ccscale=F){
   if(ccscale==T){
     if(org=='human'){
       #Assign scores in the CellCycleScoring function.Stores S and G2/M scores in object@meta.data, along with the predicted classification of each cell in either G2M, S or G1 phase
-      object <- CellCycleScoring(object = object, s.genes = cc.genes$s.genes, g2m.genes = cc.genes$g2m.genes)
+      object <- CellCycleScoring(object = object, s.features = cc.genes$s.genes, g2m.features = cc.genes$g2m.genes)
     }else{
       m2h <- read_csv(mouseorthologfile)
       cc.genes$s.genes <- m2h %>% filter(human_name %in% cc.genes$s.genes) %>% pull(mouse_name)
