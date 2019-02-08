@@ -82,16 +82,43 @@ processExper <- function(dir,name,org='mouse',files,ccscale=F){
   
 }
 
+ClusterDR <-function(object,npcs, maxdim='auto',k=30){
+  object <- RunPCA(object = object, npcs = npcs, verbose = FALSE)
+  
+  if(maxdim=='auto'){
+    object <- JackStraw(object = object, num.replicate = 100,dims = npcs)
+    object <- ScoreJackStraw(object = object,dims=1:npcs)
+    dim <- object@reductions$pca@jackstraw$overall.p.values %>% 
+      as.data.frame(.) %>% 
+      mutate(adj = p.adjust(Score,method='bonferroni')) %>% 
+      filter(adj <0.05) %>% 
+      summarise(max=max(PC)) %>% 
+      pull(max)
+    
+  }
+  
+  object <- RunTSNE(object = object, reduction = "pca", n.neighbors = k,
+                   dims = 1:maxdim)
+  object <- RunUMAP(object = object, reduction = "pca", n.neighbors = k,
+                   dims = 1:maxdim)
+  object <- FindNeighbors(object = object,dims=1:maxdim,k.param = k)
+  object <- FindClusters(object = object,res=.3)
+  
+}
+ 
+  
 
-makeSubset <- function(object,groups){
+
+
+makeSubset <- function(object,groups,npcs=50){
   scrna.sub <- SubsetData(object = object, ident.use = groups)
   scrna.sub <- FindVariableFeatures(object = scrna.sub,assay='RNA')
   
   
   
-  scrna.sub <-RunPCA(scrna.sub,pcs.compute = 50)
+  scrna.sub <-RunPCA(scrna.sub,npcs=npcs)
   
-  scrna.sub <- JackStraw(object = scrna.sub, num.replicate = 100,dims = pcs)
+  scrna.sub <- JackStraw(object = scrna.sub, num.replicate = 100,dims = npcs)
   scrna.sub <- ScoreJackStraw(object = scrna.sub, dims = 1:pcs)
   #JackStrawPlot(object = scrna.sub, dims = 1:pcs)
   
