@@ -81,7 +81,7 @@ processExper <- function(dir,name,org='mouse',files,ccscale=F){
   
 }
 
-ClusterDR <-function(object,npcs, maxdim='auto',k=30){
+ClusterDR <-function(object,npcs=50, maxdim='auto',k=30){
   object <- RunPCA(object = object, npcs = npcs, verbose = FALSE)
   
   if(maxdim=='auto'){
@@ -95,12 +95,12 @@ ClusterDR <-function(object,npcs, maxdim='auto',k=30){
       pull(max)
     
   }
-  
-  object <- RunTSNE(object = object, reduction = "pca", n.neighbors = k,
-                   dims = 1:maxdim)
+  print(dim)
+  object <- RunTSNE(object = object, reduction = "pca",
+                   dims = 1:dim)
   object <- RunUMAP(object = object, reduction = "pca", n.neighbors = k,
-                   dims = 1:maxdim)
-  object <- FindNeighbors(object = object,dims=1:maxdim,k.param = k)
+                   dims = 1:dim)
+  object <- FindNeighbors(object = object,dims=1:dim,k.param = k)
   object <- FindClusters(object = object,res=.3)
   
 }
