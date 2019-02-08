@@ -16,9 +16,8 @@ processExper <- function(dir,name,org='mouse',files,ccscale=F){
     inputdata <- Read10X(data.dir =files[1])
     colnames(inputdata) <- paste0(colnames(inputdata), '-',name)
     # Initialize the Seurat object with the raw (non-normalized data).  
-    scrna <- CreateSeuratObject(counts= inputdata, min.cells = 10, min.features = 200,project = name)
+    object <- CreateSeuratObject(counts= inputdata, min.cells = 10, min.features = 200,project = name)
   }else{
-    
     #Initialize the first object with the raw (non-normalized data) and add rest of the data 
     inputdata <- Read10X(data.dir =files[1])
     colnames(inputdata) <- paste0(colnames(inputdata), '-',name, '-rep1')
