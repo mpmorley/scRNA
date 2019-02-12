@@ -1,4 +1,5 @@
 require(broom)
+require(plotly)
 #library(slingshot)
 
 cpallette=c("#64B2CE", "#DA5724", "#74D944", "#CE50CA", "#C0717C", "#CBD588", "#5F7FC7", 
@@ -104,9 +105,6 @@ ClusterDR <-function(object,npcs=50, maxdim='auto',k=30){
   object <- FindClusters(object = object,res=.3)
   
 }
- 
-  
-
 
 
 makeSubset <- function(object,groups,npcs=50){
@@ -260,7 +258,11 @@ p
   
   
   
-  
+make3dPlot <- function(object,gene){
+  d <- FetchData(object,c('DM_1','DM_2','DM_3',gene))
+  plot_ly(d, x=~DM_1, y=~DM_2, z=~DM_3,color=~get(gene)) %>%
+    add_markers()  
+}
 
 
 
