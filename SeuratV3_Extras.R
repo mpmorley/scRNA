@@ -1,6 +1,7 @@
 require(broom)
 require(plotly)
-#library(slingshot)
+require(slingshot)
+require(dplyr)
 
 cpallette=c("#64B2CE", "#DA5724", "#74D944", "#CE50CA", "#C0717C", "#CBD588", "#5F7FC7", 
             "#673770", "#D3D93E", "#8569D5", "#508578", "#D7C1B1", "#689030", "#AD6F3B", "#CD9BCD", 
@@ -107,6 +108,20 @@ ClusterDR <-function(object,npcs=50, maxdim='auto',k=30){
 }
 
 
+getMaxDim <- function(object){
+  
+  object@reductions$pca@jackstraw$overall.p.values %>% 
+    as.data.frame(.) %>% 
+    mutate(adj = p.adjust(Score,method='bonferroni')) %>% 
+    filter(adj <0.05) %>% 
+    summarise(max=max(PC)) %>% 
+    pull(max)
+  
+  
+}
+
+
+
 makeSubset <- function(object,groups,npcs=50){
   scrna.sub <- SubsetData(object = object, ident.use = groups)
   scrna.sub <- FindVariableFeatures(object = scrna.sub,assay='RNA')
@@ -130,8 +145,6 @@ makeSubset <- function(object,groups,npcs=50){
   save(file=paste0(outdir,'/',projectname,'_',m,'.RData'))
   rm(scrna.sub)
 }
-
-
 
 
 
@@ -235,7 +248,7 @@ runSDSDGE <- function(object){
 }
 
 
-plotPseudoTime = function(object,groupby,reduction='dm'){
+plotPseudoTime = function(object,groupby,reduction='dm',dims=1:2){
 
   curved <- bind_rows(lapply(names(object@misc$sds$data@curves), function(x){c <- slingCurves(object@misc$sds$data)[[x]]
                                                 d <- as.data.frame(c$s[c$ord,seq_len(2)])
@@ -244,12 +257,13 @@ plotPseudoTime = function(object,groupby,reduction='dm'){
                                                 })
                                                ) 
 
-  
-  data <- Embeddings(object = object[[reduction]])
-  
-  p=FetchData(object,groupby) %>% cbind(.,data) %>%
-    ggplot(.,aes(x=DM_1,y=DM_2))+geom_point(aes(color=!!sym(groupby))) + theme(legend.position="top") + guides(col = guide_legend(nrow = 2))+
-    geom_path(aes(DM_1, DM_2,linetype=curve),curved,size=1)
+  dims <- paste0(Key(object = object[[reduction]]), dims)
+
+  p=FetchData(object = object, vars = c(dims,groupby)) %>%
+    ggplot(.,aes_string(x=dims[1],y=dims[2]))+geom_point(aes(color=!!sym(groupby))) + 
+    theme(legend.position="top") + 
+    guides(col = guide_legend(nrow = 2)) +
+    geom_path(aes_string(dims[1], dims[2],linetype="curve"),curved,size=1)
 p
   
   
@@ -258,9 +272,12 @@ p
   
   
   
-make3dPlot <- function(object,gene){
-  d <- FetchData(object,c('DM_1','DM_2','DM_3',gene))
-  plot_ly(d, x=~DM_1, y=~DM_2, z=~DM_3,color=~get(gene)) %>%
+make3dPlot <- function(object,groupby,reduction='dm'){
+  dims=1:3
+  dims <- paste0(Key(object = object[[reduction]]), dims)
+  data <- FetchData(object = object, vars = c(dims,groupby))
+  
+  plot_ly(data, x=~get(dims[1]), y=~get(dims[2]), z=~get(dims[3]),color=~get(groupby),stroke=~get(groupby),size=1 ) %>%
     add_markers()  
 }
 
