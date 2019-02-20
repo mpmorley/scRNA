@@ -272,12 +272,15 @@ p
   
   
   
-make3dPlot <- function(object,groupby,reduction='dm'){
+make3dPlot <- function(object,groupby,reduction='dm',colors=NULL){
   dims=1:3
   dims <- paste0(Key(object = object[[reduction]]), dims)
   data <- FetchData(object = object, vars = c(dims,groupby))
   
-  plot_ly(data, x=~get(dims[1]), y=~get(dims[2]), z=~get(dims[3]),color=~get(groupby),stroke=~get(groupby),size=1 ) %>%
+  if(is.factor(data[,groupby])){
+    colors=cpallette
+  }
+  plot_ly(data, x=~get(dims[1]), y=~get(dims[2]), z=~get(dims[3]),colors=colors,color=~get(groupby),size=.5 ) %>%
     add_markers()  
 }
 
