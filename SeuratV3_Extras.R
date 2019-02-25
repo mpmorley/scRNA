@@ -96,6 +96,8 @@ ClusterDR <-function(object,npcs=50, maxdim='auto',k=30){
       summarise(max=max(PC)) %>% 
       pull(max)
     
+  } else {
+    dim<-maxdim
   }
   print(dim)
   object <- RunTSNE(object = object, reduction = "pca",
