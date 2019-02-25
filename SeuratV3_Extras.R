@@ -106,7 +106,7 @@ ClusterDR <-function(object,npcs=50, maxdim='auto',k=30){
                    dims = 1:dim)
   object <- FindNeighbors(object = object,dims=1:dim,k.param = k)
   object <- FindClusters(object = object,res=.3)
-  object$var_cluster <- object@active.indent
+  object$var_cluster <- object@active.ident
   object$misc[[findallmarkers]] <- FindAllMarkers(object = object, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
   
 }
