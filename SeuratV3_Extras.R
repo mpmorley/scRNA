@@ -100,10 +100,12 @@ ClusterDR <-function(object,npcs=50, maxdim='auto',k=30){
   print(dim)
   object <- RunTSNE(object = object, reduction = "pca",
                    dims = 1:dim)
-  object <- RunUMAP(object = object, reduction = "pca", n.neighbors = k,
+  object <- RunUMAP(object = object, reduction = "pca", n.neighbors = k,n.components = 3,
                    dims = 1:dim)
   object <- FindNeighbors(object = object,dims=1:dim,k.param = k)
   object <- FindClusters(object = object,res=.3)
+  object$var_cluster <- indent
+  object$misc[[findallmarkers]] <- FindAllMarkers(object = object, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
   
 }
 
