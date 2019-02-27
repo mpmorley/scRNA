@@ -107,7 +107,7 @@ ClusterDR <-function(object,npcs=50, maxdim='auto',k=30){
   object <- FindNeighbors(object = object,dims=1:dim,k.param = k)
   object <- FindClusters(object = object,res=.3)
   object$var_cluster <- object@active.ident
-  object$misc[[findallmarkers]] <- FindAllMarkers(object = object, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+  object@misc[["findallmarkers"]] <- FindAllMarkers(object = object, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
   
 }
 
@@ -224,8 +224,11 @@ plotCurveDGEgenes <- function(object=NULL,curve=NULL,n=25,reduction.use='dm'){
 
 
 
+runSDS <- function(object,reduction='dm',groups=NULL, start.clus=NULL,end.clus=NULL){
+ print('Please use the runSlingshot Function') 
+}
 
-runSDS  <- function(object,reduction='dm',groups=NULL, start.clus=NULL,end.clus=NULL){
+runSlingshot  <- function(object,reduction='dm',groups=NULL, start.clus=NULL,end.clus=NULL){
   rd <- Embeddings(object,reduction)
   cl <- Idents(object = object)
   object@misc[['sds']] <-  list("dr"=reduction,"data"=slingshot(rd,cl,start.clus=start.clus,end.clus=end.clus))
@@ -233,6 +236,10 @@ runSDS  <- function(object,reduction='dm',groups=NULL, start.clus=NULL,end.clus=
   object@meta.data[,colnames(ps)] <- ps 
   return(object)
 }
+
+
+
+
 
 
 runSDSDGE <- function(object){
