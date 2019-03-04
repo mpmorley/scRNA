@@ -1,6 +1,6 @@
 require(broom)
 require(plotly)
-require(slingshot)
+#require(slingshot)
 require(dplyr)
 
 cpallette=c("#64B2CE", "#DA5724", "#74D944", "#CE50CA", "#C0717C", "#CBD588", "#5F7FC7", 
@@ -100,15 +100,14 @@ ClusterDR <-function(object,npcs=50, maxdim='auto',k=30){
     dim<-maxdim
   }
   print(dim)
-  object <- RunTSNE(object = object, reduction = "pca",
-                   dims = 1:dim)
-  object <- RunUMAP(object = object, reduction = "pca", n.neighbors = k,n.components = 3,
-                   dims = 1:dim)
+  object <- RunTSNE(object = object, reduction = "pca",dims = 1:dim)
+  object <- RunUMAP(object = object, reduction = "pca", n.neighbors = k,n.components = 3,dims = 1:dim)
+  object <- RunDiffusion(object = object,dims=1:dim)
   object <- FindNeighbors(object = object,dims=1:dim,k.param = k)
   object <- FindClusters(object = object,res=.3)
   object$var_cluster <- object@active.ident
   object@misc[["findallmarkers"]] <- FindAllMarkers(object = object, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
-  
+  object
 }
 
 
@@ -121,6 +120,12 @@ getMaxDim <- function(object){
     summarise(max=max(PC)) %>% 
     pull(max)
   
+  
+}
+
+getClusterMarkers <- function(object,cluster=0){
+  
+  object@misc[['findallmarkers']] %>% filter(cluster==!!cluster)
   
 }
 
@@ -150,6 +155,28 @@ makeSubset <- function(object,groups,npcs=50){
   rm(scrna.sub)
 }
 
+
+HeatMapTopGenes <- function(object,nfeatures=10){
+  if(nfeatures > 50){
+    print('Too many features, choose < 50')
+    return()
+  }
+ 
+  object@misc[['findallmarkers']] %>% group_by(cluster) %>% top_n(n = 10, wt = avg_logFC) %>% pull(gene) %>%
+  DoHeatmap(object = object, features = .) + NoLegend()
+  
+}
+
+DotPlotTopGenes <- function(object,nfeatures=3){
+  if(nfeatures > 50){
+    print('Too many features, choose < 10')
+    return()
+  }
+  
+  object@misc[['findallmarkers']] %>% group_by(cluster) %>% top_n(n = 10, wt = avg_logFC) %>% pull(gene) %>%
+    DotPlot(object = object, features = .)
+  
+}
 
 
 RunDiffusion <- function(
@@ -200,6 +227,17 @@ RunDiffusion <- function(
   return(object)
 }
 
+make3dPlot <- function(object,groupby,reduction='dm',colors=NULL){
+  dims=1:3
+  dims <- paste0(Key(object = object[[reduction]]), dims)
+  data <- FetchData(object = object, vars = c(dims,groupby))
+  
+  if(is.factor(data[,groupby])){
+    colors=cpallette
+  }
+  plot_ly(data, x=~get(dims[1]), y=~get(dims[2]), z=~get(dims[3]),colors=colors,color=~get(groupby),size=.5 ) %>%
+    add_markers()  
+}
 
 ################################
 #   Slingshot 
@@ -239,9 +277,6 @@ runSlingshot  <- function(object,reduction='dm',groups=NULL, start.clus=NULL,end
 
 
 
-
-
-
 runSDSDGE <- function(object){
   DGE <- list()
   for(c in names(object@misc$sds$data@curves)){
@@ -257,6 +292,9 @@ runSDSDGE <- function(object){
   return(object)
 
 }
+
+
+
 
 
 plotPseudoTime = function(object,groupby,reduction='dm',dims=1:2){
@@ -283,17 +321,6 @@ p
   
   
   
-make3dPlot <- function(object,groupby,reduction='dm',colors=NULL){
-  dims=1:3
-  dims <- paste0(Key(object = object[[reduction]]), dims)
-  data <- FetchData(object = object, vars = c(dims,groupby))
-  
-  if(is.factor(data[,groupby])){
-    colors=cpallette
-  }
-  plot_ly(data, x=~get(dims[1]), y=~get(dims[2]), z=~get(dims[3]),colors=colors,color=~get(groupby),size=.5 ) %>%
-    add_markers()  
-}
 
 
 
