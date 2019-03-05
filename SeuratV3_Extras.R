@@ -69,7 +69,7 @@ processExper <- function(dir,name,org='mouse',files,ccscale=F){
       #Assign scores in the CellCycleScoring function.Stores S and G2/M scores in object@meta.data, along with the predicted classification of each cell in either G2M, S or G1 phase
       object <- CellCycleScoring(object = object, s.features = cc.genes$s.genes, g2m.features = cc.genes$g2m.genes)
     }else{
-      m2h <- read_csv(mouseorthologfile)
+      m2h <- readr::read_csv(mouseorthologfile)
       cc.genes$s.genes <- m2h %>% filter(human_name %in% cc.genes$s.genes) %>% pull(mouse_name)
       cc.genes$g2m.genes <- m2h %>% filter(human_name %in% cc.genes$g2m.genes) %>% pull(mouse_name)
       object <- CellCycleScoring(object = object, s.features  = cc.genes$s.genes, g2m.features = cc.genes$g2m.genes)
@@ -128,7 +128,6 @@ getClusterMarkers <- function(object,cluster=0){
   object@misc[['findallmarkers']] %>% filter(cluster==!!cluster)
   
 }
-
 
 
 makeSubset <- function(object,groups,npcs=50){
