@@ -9,7 +9,7 @@ cpallette=c("#64B2CE", "#DA5724", "#74D944", "#CE50CA", "#C0717C", "#CBD588", "#
             "#8A7C64", "#599861")
 
 
-processExper <- function(dir,name,org='mouse',files,ccscale=F){
+processExper <- function(dir,name,org='mouse',files,ccscale=F,filter = T){
   try(if(length(files)==0) stop("No files"))
  
   
@@ -54,6 +54,10 @@ processExper <- function(dir,name,org='mouse',files,ccscale=F){
   VlnPlot(object = object, features = c("nFeature_RNA", "nCount_RNA", "percent.mito"),
           ncol = 3)
   
+  if(filter){
+    object <- subset(object, subset = nFeature_RNA > 200 & percent.mito < 0.05)
+    
+  }
   
   #normalize data
   object <- NormalizeData(object = object)
