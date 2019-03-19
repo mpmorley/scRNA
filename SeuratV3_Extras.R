@@ -56,7 +56,7 @@ processExper <- function(dir,name,org='mouse',files,ccscale=F,filter = T){
   
   if(filter){
     #Using a median + 3 MAD cutoff for high genes. 
-    cutoff <- median(scrna@meta.data$nFeature_RNA) + 3*mad(scrna@meta.data$nFeature_RNA)
+    cutoff <- median(object@meta.data$nFeature_RNA) + 3*mad(object@meta.data$nFeature_RNA)
     object <- subset(object, subset = nFeature_RNA > 200 & percent.mito < 0.05 & nFeature_RNA < cutoff )
     
   }
