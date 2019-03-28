@@ -56,8 +56,7 @@ processExper <- function(dir,name,org='mouse',files,ccscale=F,filter = T){
   
   if(filter){
     #Using a median + 3 MAD cutoff for high genes. 
-    cutoff <- median(object@meta.data$nFeature_RNA) + 3*mad(object@meta.data$nFeature_RNA)
-    object <- subset(object, subset = nFeature_RNA > 200 & percent.mito < 0.05 & nFeature_RNA < cutoff )
+    object <- subset(object, subset = nFeature_RNA > 200 & percent.mito < 0.05 & nFeature_RNA < median(object$nFeature_RNA) + 3*mad(object$nFeature_RNA) )
     
   }
   
@@ -110,7 +109,7 @@ ClusterDR <-function(object,npcs=50, maxdim='auto',k=30){
   object <- RunUMAP(object = object, reduction = "pca", n.neighbors = k,n.components = 3,dims = 1:dim)
   object <- RunDiffusion(object = object,dims=1:dim)
   object <- FindNeighbors(object = object,dims=1:dim,k.param = k)
-  object <- FindClusters(object = object,res=.3)
+  object <- FindClusters(object = object)
   object$var_cluster <- object@active.ident
   object@misc[["findallmarkers"]] <- FindAllMarkers(object = object, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
   object
