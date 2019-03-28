@@ -2,7 +2,7 @@ require(broom)
 require(plotly)
 #require(slingshot)
 require(dplyr)
-library(ExpressExtras)
+#library(ExpressExtras)
 
 cpallette=c("#64B2CE", "#DA5724", "#74D944", "#CE50CA", "#C0717C", "#CBD588", "#5F7FC7", 
             "#673770", "#D3D93E", "#8569D5", "#508578", "#D7C1B1", "#689030", "#AD6F3B", "#CD9BCD", 
