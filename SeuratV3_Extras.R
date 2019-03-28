@@ -2,7 +2,7 @@ require(broom)
 require(plotly)
 #require(slingshot)
 require(dplyr)
-library(ExpressExtras)
+#library(ExpressExtras)
 
 cpallette=c("#64B2CE", "#DA5724", "#74D944", "#CE50CA", "#C0717C", "#CBD588", "#5F7FC7", 
             "#673770", "#D3D93E", "#8569D5", "#508578", "#D7C1B1", "#689030", "#AD6F3B", "#CD9BCD", 
@@ -330,7 +330,7 @@ p
   tt=rownames(GetAssayData(object = scrna, slot = "counts"))
   
   #genes=fread("data/ligrecgenes.txt",header = TRUE)       
-  if(org=="mouse"){data('Mm_PairsLigRec',package="ExpressExtras")}else if(org=="human"){data('Hs_PairsLigRec',package="ExpressExtras")}
+ # if(org=="mouse"){data('Mm_PairsLigRec',package="ExpressExtras")}else if(org=="human"){data('Hs_PairsLigRec',package="ExpressExtras")}
   genes=unique(c(as.character(rl$ligand),as.character(rl$receptor)))
   genes2=tt[tt %in% genes]
   #For all unique genes in the ligrec list, get their expression value for all cells and the groups the cells belong to
