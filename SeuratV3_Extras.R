@@ -2,7 +2,9 @@ require(broom)
 require(plotly)
 #require(slingshot)
 require(dplyr)
-#library(ExpressExtras)
+devtools::install_github("Morriseylab/ligrec")
+
+
 
 cpallette=c("#64B2CE", "#DA5724", "#74D944", "#CE50CA", "#C0717C", "#CBD588", "#5F7FC7", 
             "#673770", "#D3D93E", "#8569D5", "#508578", "#D7C1B1", "#689030", "#AD6F3B", "#CD9BCD", 
@@ -323,14 +325,19 @@ p
   
     
   }
-  
+#####################################################################################
+#
+#
+#####################################################################################
+
+
   ligrec <- function(scrna,grp.var,org,perc){
   #get grouping variable
   var=as.character(grp.var)
   tt=rownames(GetAssayData(object = scrna, slot = "counts"))
-  
+  Mm_PairsLigRec
   #genes=fread("data/ligrecgenes.txt",header = TRUE)       
- # if(org=="mouse"){data('Mm_PairsLigRec',package="ExpressExtras")}else if(org=="human"){data('Hs_PairsLigRec',package="ExpressExtras")}
+  if(org=="mouse"){data('Mm_PairsLigRec',package="ligrec")}else if(org=="human"){data('Hs_PairsLigRec',package="logrec")}
   genes=unique(c(as.character(rl$ligand),as.character(rl$receptor)))
   genes2=tt[tt %in% genes]
   #For all unique genes in the ligrec list, get their expression value for all cells and the groups the cells belong to
