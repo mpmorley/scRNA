@@ -36,7 +36,7 @@ processExper <- function(dir,name,org='mouse',files,ccscale=F,filter = T){
      # cat('Rep', i, ": ", length(tmp.object@cell.names), "\n", sep="")
       object <- merge(object, tmp.object, do.normalize = FALSE, min.cells = 0, min.features = 0)
     }
-    #cat("merged: ", length(scrna@cell.names), "\n", sep="")
+    #cat("merged: ", length(object@cell.names), "\n", sep="")
   }
   
 
@@ -137,30 +137,6 @@ getClusterMarkers <- function(object,cluster=0){
   
 }
 
-
-makeSubset <- function(object,groups,npcs=50){
-  scrna.sub <- SubsetData(object = object, ident.use = groups)
-  scrna.sub <- FindVariableFeatures(object = scrna.sub,assay='RNA')
-  
-  
-  
-  scrna.sub <-RunPCA(scrna.sub,npcs=npcs)
-  
-  scrna.sub <- JackStraw(object = scrna.sub, num.replicate = 100,dims = npcs)
-  scrna.sub <- ScoreJackStraw(object = scrna.sub, dims = 1:pcs)
-  #JackStrawPlot(object = scrna.sub, dims = 1:pcs)
-  
-  dim <- scrna.sub@reductions$pca@jackstraw$overall.p.values %>% as.data.frame(.) %>% filter(Score<0.001) %>% summarise(max=max(PC)) %>% pull(max)
-  
-  scrna.sub <- FindNeighbors(object = scrna.sub,dims = 1:dim)
-  scrna.sub <- FindClusters(object = scrna.sub,resolution = .4)
-  
-  scrna.sub <- RunUMAP(object = scrna.sub, min.dist=.3,n.neighbors = 50,dims = 1:dim)
-  scrna.sub <- RunDiffusion(object = scrna.sub,dims=1:dim)
-  
-  save(file=paste0(outdir,'/',projectname,'_',m,'.RData'))
-  rm(scrna.sub)
-}
 
 
 HeatMapTopGenes <- function(object,nfeatures=10){
@@ -330,18 +306,22 @@ p
 #
 #####################################################################################
 
-
-  ligrec <- function(scrna,grp.var,org,perc){
+ligrec <- function(object,grp.var='ident',org,perc=30){
   #get grouping variable
   var=as.character(grp.var)
-  tt=rownames(GetAssayData(object = scrna, slot = "counts"))
-  Mm_PairsLigRec
   #genes=fread("data/ligrecgenes.txt",header = TRUE)       
-  if(org=="mouse"){data('Mm_PairsLigRec',package="ligrec")}else if(org=="human"){data('Hs_PairsLigRec',package="logrec")}
-  genes=unique(c(as.character(rl$ligand),as.character(rl$receptor)))
-  genes2=tt[tt %in% genes]
+  if(org=="mouse"){
+    data('Mm_PairsLigRec',package="ligrec")
+    rl = mm
+  }else if(org=="human"){
+    data('Hs_PairsLigRec',package="ligrec")
+    rl=hs
+    }
+
+  genes <- intersect(rownames(GetAssayData(object = object, slot = "counts",assay='RNA')), unique(c(as.character(rl$ligand),as.character(rl$receptor))))
+  
   #For all unique genes in the ligrec list, get their expression value for all cells and the groups the cells belong to
-  my.data=FetchData(scrna,c(var,genes2))
+  my.data <- cbind(FetchData(object,c(var)), FetchData(GetAssay(object = object,assay='RNA'),genes,slot="counts"))
   colnames(my.data)[1]= "clust"
   perc=perc/100
   result=data.frame()
@@ -373,7 +353,9 @@ p
   }
   # get final list of all lig-rec pairs
   #result=result[result$Receptor_cluster!=result$Lig_cluster,]
-  return(result)
+  
+  object@misc[['ligrec']] <- result
+  object
 }
 
   
